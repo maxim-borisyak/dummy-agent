@@ -25,7 +25,7 @@ class PatternMatchingTestCase(unittest.TestCase):
     f = merge_matches([
       match_f(even)(lambda n: n / 2),
       case_f(an_int)(lambda n: n + 1),
-      case_f(an_int)(lambda n: n * 10), # never method
+      case_f(an_int)(lambda n: n * 10), # 'never' method
       case_f(a_str)(lambda s: s + '!'),
       case_f(a_float)(lambda z: z + 1.0),
     ])
@@ -77,12 +77,8 @@ class AgentSystemTestCase(unittest.TestCase):
 
       @case_method('SET', an_agent, an_int)
       def receive_set(self, (_, whom, x)):
-        print self, 'Set begin'
         self.__inc = x
-        print self, 'set'
-        print self, 'sending'
         self.send(whom, ('OK', ))
-        print self, 'Set end'
 
       def setup(self):
         self.__inc = 0
@@ -92,9 +88,7 @@ class AgentSystemTestCase(unittest.TestCase):
       Incrementer(execution_context=self.system, name='incrementer')
       answers = TestAgent(scenario=scenario, execution_context=self.system, name='test').get_answers()
 
-      self.assertTrue(ok(answers[0]))
-      self.assertTrue(answer(2)(answers[1]))
-      self.assertTrue(ok(answers[2]))
-      self.assertTrue(answer(7)(answers[3]))
+      matcher = [ok, answer(2), ok, answer(7)]
+      self.assertTrue(all([p(x) for x, p in zip(answers, matcher)]))
     finally:
-      self.system.shutdown_system(True, False)
+      self.system.shutdown(True, False)

@@ -45,9 +45,7 @@ class Agent:
       self._current_receive = merge_matches(funcs)
 
   def send(self, whom, message):
-    print self, 'sending'
     self.execution_context.transfer(self, str(whom), message)
-    print self, 'end sending'
 
   def incoming(self, message):
     self._message_queue.add(message)
@@ -57,7 +55,6 @@ class Agent:
     pass
 
   def process(self):
-    print self, 'processing'
     mq = self._message_queue.copy()
     self._message_queue.clear()
     for m in mq:
@@ -66,7 +63,6 @@ class Agent:
       except Exception as e:
         self.send(self.execution_context.guard, ('ERROR', self.name, str(e)))
 
-    print self, 'end processing'
     if len(self._message_queue) > 0:
       return self.process()
 
@@ -93,7 +89,7 @@ class GuardAgent(Agent):
     self.execution_context.error(e, 'is caused by', agent)
 
   def receive_shutdown(self, (_, agent)):
-    self.execution_context.shutdown(agent, False, False)
+    self.execution_context.shutdown_agent(agent, False, False)
 
 def an_agent(x):
   return isinstance(x, Agent) or a_str(x)

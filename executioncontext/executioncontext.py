@@ -2,7 +2,7 @@
 # Module: 
 # Author: Maxim Borisyak, 2014
 
-from dummyagent.agent import GuardAgent, Agent
+from agent import GuardAgent, Agent
 
 class ExecutionContext:
 
@@ -24,10 +24,10 @@ class ExecutionContext:
   def get_parent(self):
     return self.guard
 
-  def shutdown(self, agent):
+  def shutdown_agent(self, agent):
     raise NotImplementedError
 
-  def shutdown_system(self, hard=True, wait=False):
+  def shutdown(self, hard=True, wait=False):
     raise NotImplementedError
 
   def initiate(self, agent, message):

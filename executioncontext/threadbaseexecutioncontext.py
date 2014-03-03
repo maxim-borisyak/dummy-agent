@@ -1,6 +1,19 @@
 #! /usr/bin/python
-# Module: 
+# Module: execution context
 # Author: Maxim Borisyak, 2014
+
+"""
+  Not so effective realisation of basic operations over agent:
+   - transfer messages,
+   - launching new agent,
+   - shutdown an agent,
+   - some operations, like generation of default names.
+
+  Each operation, like transfer, lock the only mutex,
+  so, for example, you can not transfer two messages simultaneously.
+  But, for Python threads, it is normal, because really
+  there is only one execution flow.
+"""
 
 from executioncontext import ExecutionContext
 from multiprocessing import Pipe
@@ -61,7 +74,7 @@ class ThreadBasedExecutionContext(ExecutionContext):
 
     return agent
 
-  def shutdown(self, agent, hard=False, wait=False):
+  def shutdown_agent(self, agent, hard=False, wait=False):
     self.lock.acquire()
     try:
       self._shutdown(agent, hard, wait)
@@ -109,7 +122,7 @@ class ThreadBasedExecutionContext(ExecutionContext):
     finally:
       self.lock.release()
 
-  def shutdown_system(self, hard=True, wait=False):
+  def shutdown(self, hard=True, wait=False):
     self.lock.acquire()
     try:
       pipes = self.pipes.items()

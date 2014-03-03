@@ -37,8 +37,8 @@ class SeqExecutionContext(ExecutionContext):
     to_agent.incoming(message)
     self.involved_agents.add(to_agent)
 
-  def shutdown(self, agent):
+  def shutdown_agent(self, agent):
     pass
 
-  def shutdown_system(self, hard=True, wait=False):
+  def shutdown(self, hard=True, wait=False):
     pass
