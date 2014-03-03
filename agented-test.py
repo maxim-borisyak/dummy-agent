@@ -77,12 +77,8 @@ class AgentSystemTestCase(unittest.TestCase):
 
       @case_method('SET', an_agent, an_int)
       def receive_set(self, (_, whom, x)):
-        print self, 'Set begin'
         self.__inc = x
-        print self, 'set'
-        print self, 'sending'
         self.send(whom, ('OK', ))
-        print self, 'Set end'
 
       def setup(self):
         self.__inc = 0
