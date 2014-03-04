@@ -8,6 +8,7 @@ from functial import *
 class RichAgent(Agent):
   def __init__(self, *args, **kwargs):
     self._activities = list()
+    self._postponed_messages = list()
     Agent.__init__(self, *args, **kwargs)
 
   def add_activity(self, activity):
@@ -22,6 +23,14 @@ class RichAgent(Agent):
       except MatchError as e:
         raise e
 
+  def process(self):
+    Agent.process(self)
+
+    postponed = self._postponed_messages[:]
+    self._postponed_messages = list()
+    for m in postponed:
+      self._process_message(m)
+
   def _process_message(self, message):
     for activity in self._activities:
       try:
@@ -34,19 +43,12 @@ class RichAgent(Agent):
     Agent._process_message(self, message)
 
   @receive_method
-  def defer(self, message):
-    """
-    The best way to defer a message is to send it to itself.
-    Use it carefully with extra attention.
-    """
-    self.send(self, message)
+  def postpone(self, message):
+    self._postponed_messages.append(message)
 
   def become(self, *funcs):
-    if len(funcs) != 0 and funcs[0] is not None:
-      mixin_funcs = funcs + (self.mortal, self.ignore)
-      Agent.become(self, *mixin_funcs)
-    else:
-      Agent.become(self, *funcs)
+    mixin_funcs = funcs + (self.mortal, self.ignore)
+    Agent.become(self, *mixin_funcs)
 
   @receive_method
   def ignore(self, message):

@@ -52,5 +52,6 @@ class ExecutionContext:
   def transfer(self, from_agent, to_agent, message):
     raise NotImplementedError
 
-  def spawn(self, receive_function, name=None, parent=None):
-    return Agent(self, receive_function, parent, name)
+  def spawn(self, constructor, parent=None, name=None):
+    agent = constructor(self, parent, name)
+    return str(agent)

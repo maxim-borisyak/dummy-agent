@@ -15,7 +15,7 @@ class Agent:
 
   name = ''
 
-  def __init__(self, execution_context, receive_function=None, parent=None, name=None):
+  def __init__(self, execution_context, parent=None, name=None):
     self.execution_context = execution_context
     self.parent = parent if parent is not None else self.execution_context.get_parent()
 
@@ -23,8 +23,7 @@ class Agent:
     name_postfix = name if name is not None else self.execution_context.generate_name()
     self.name = name_prefix + '/' + name_postfix
 
-    if callable(receive_function):
-      self._current_receive = partial(receive_function, self)
+    self._current_receive = self.receive
 
     self.execution_context.launch(self)
     self.setup()
@@ -39,10 +38,7 @@ class Agent:
     return self.name
 
   def become(self, *funcs):
-    if len(funcs) == 0 or funcs[0] is None:
-      self._current_receive = self.receive
-    else:
-      self._current_receive = merge_matches(funcs)
+    self._current_receive = merge_matches(funcs)
 
   def send(self, whom, message):
     self.execution_context.transfer(self, str(whom), message)
@@ -65,20 +61,20 @@ class Agent:
       return self.process()
 
   def _process_message(self, message):
-      try:
-        self._current_receive(message)
-      except Exception as e:
-        self.send(self.execution_context.guard, ('ERROR', self.name, str(e)))
+    try:
+      self._current_receive(message)
+    except Exception as e:
+      self.send(self.execution_context.guard, ('ERROR', self.name, str(e)))
 
-  def spawn(self, receive_function):
-    agent = self.execution_context.spawn(receive_function, self)
-    self.children.add(agent)
+  def spawn(self, constructor, name=None):
+    agent = constructor(self.execution_context, str(self), name)
+    self.children.add(str(agent))
     return agent
 
 class GuardAgent(Agent):
   def __init__(self, execution_context):
 
-    Agent.__init__(self, execution_context, None, '', 'system')
+    Agent.__init__(self, execution_context, '', 'system')
 
     self.become(match([
       case('ERROR', an_agent, some), self.receive_error,
