@@ -57,14 +57,18 @@ class Agent:
   def process(self):
     mq = self._message_queue.copy()
     self._message_queue.clear()
+
     for m in mq:
-      try:
-        self._current_receive(m)
-      except Exception as e:
-        self.send(self.execution_context.guard, ('ERROR', self.name, str(e)))
+      self._process_message(m)
 
     if len(self._message_queue) > 0:
       return self.process()
+
+  def _process_message(self, message):
+      try:
+        self._current_receive(message)
+      except Exception as e:
+        self.send(self.execution_context.guard, ('ERROR', self.name, str(e)))
 
   def spawn(self, receive_function):
     agent = self.execution_context.spawn(receive_function, self)

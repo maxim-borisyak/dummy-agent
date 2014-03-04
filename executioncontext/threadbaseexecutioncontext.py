@@ -77,11 +77,11 @@ class ThreadBasedExecutionContext(ExecutionContext):
   def shutdown_agent(self, agent, hard=False, wait=False):
     self.lock.acquire()
     try:
-      self._shutdown(agent, hard, wait)
+      self._shutdown_agent(agent, hard, wait)
     finally:
       self.lock.release()
 
-  def _shutdown(self, agent, hard=False, wait=False):
+  def _shutdown_agent(self, agent, hard=False, wait=False):
     agent = self.agents_by_name.pop(str(agent), None)
     if agent is None:
       return
@@ -91,7 +91,7 @@ class ThreadBasedExecutionContext(ExecutionContext):
     thread = self.threads.pop(agent, None)
 
     if hard:
-      thread.join(0.5)
+      thread.join(1.0)
       if thread.isAlive():
         raise Exception('Non-stop thread!')
     elif wait:
@@ -128,7 +128,7 @@ class ThreadBasedExecutionContext(ExecutionContext):
       pipes = self.pipes.items()
 
       for agent, pipe in pipes:
-        self._shutdown(agent, hard, wait)
+        self._shutdown_agent(agent, hard, wait)
 
       self.pipes.clear()
       self.threads.clear()

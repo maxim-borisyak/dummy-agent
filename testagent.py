@@ -4,7 +4,8 @@
 
 from richagent import RichAgent
 from functial import *
-from threading import Event
+from threading import Event, Timer
+
 
 class TestAgent(RichAgent):
   def __init__(self, scenario, *args, **kwargs):
@@ -13,6 +14,8 @@ class TestAgent(RichAgent):
     self.__iterator = iter(scenario)
     self.__answers = list()
     self.__event = Event()
+    self.__timeout = False
+    self.__timer = None
     self.__next()
 
   def __next(self):
@@ -26,8 +29,22 @@ class TestAgent(RichAgent):
     except StopIteration:
       self.__event.set()
 
-  def get_answers(self):
+  def timeout(self):
+    self.__event.set()
+    self.__timeout = True
+
+  def get_answers(self, timeout=None):
+    if timeout is not None:
+      self.__timer = Timer(timeout, self.timeout)
+      self.__timer.start()
+
     self.__event.wait()
+
+    if self.__timeout:
+      raise Exception('Timeout!')
+    elif self.__timer is not None:
+      self.__timer.cancel()
+
     return self.__answers
 
   def expect(self, matcher):

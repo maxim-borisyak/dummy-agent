@@ -92,3 +92,52 @@ class AgentSystemTestCase(unittest.TestCase):
       self.assertTrue(all([p(x) for x, p in zip(answers, matcher)]))
     finally:
       self.system.shutdown(True, False)
+
+class ActivityTestCase(unittest.TestCase):
+  def setUp(self):
+    self.system = ThreadBasedExecutionContext(ThreadBasedExecutionContext.INFO_LEVEL)
+
+  def test_activity(self):
+    answer = lambda x: case('ANSWER', constant(x))
+
+    class RAgent(RichAgent):
+
+      def inc_activity(self, z):
+
+        @case_f('INC', an_agent, an_int)
+        def gen_act((_, whom, x)):
+          self.send(whom, ('ANSWER', x + z))
+          if z > 0:
+            self.add_activity(self.inc_activity(z - 1))
+
+        return gen_act
+
+      @case_method('DEF_INC', an_agent, an_int)
+      def default(self, (_, whom, x)):
+        self.send(whom, ('ANSWER', x + 100))
+
+      def setup(self):
+        self.add_activity(self.inc_activity(3))
+        self.become(self.default,
+                    self.ignore)
+
+    scenario = [
+      ('/system/inc', ('INC', '/system/tester', 0), answer(3)),
+      ('/system/inc', ('DEF_INC', '/system/tester', 1), answer(101)),
+      ('/system/inc', ('INC', '/system/tester', 0), answer(2)),
+      ('/system/inc', ('INC', '/system/tester', 0), answer(1)),
+      ('/system/inc', ('DEF_INC', '/system/tester', 2), answer(102)),
+      ('/system/inc', ('INC', '/system/tester', 0), answer(0)),
+      ('/system/inc', ('INC', '/system/tester', 0), None),
+      ('/system/inc', ('DEF_INC', '/system/tester', 3), answer(103)),
+    ]
+
+    try:
+      RAgent(execution_context=self.system, name='inc')
+      answers = TestAgent(scenario=scenario, execution_context=self.system, name='tester').get_answers(3.0)
+
+      matcher = map(answer, [3, 101, 2, 1, 102, 0, 103])
+      self.assertTrue(all([p(x) for x, p in zip(answers, matcher)]))
+    finally:
+      self.system.shutdown(True, False)
+
