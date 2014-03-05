@@ -71,16 +71,23 @@ class Agent:
     self.children.add(str(agent))
     return agent
 
+  def info(self, *args):
+    self.send(self.execution_context.guard, ('INFO', str(self), ", ".join(args)))
+
 class GuardAgent(Agent):
   def __init__(self, execution_context):
 
     Agent.__init__(self, execution_context, '', 'system')
 
     self.become(match([
+      case('INFO', an_agent, some) , self.receive_info,
       case('ERROR', an_agent, some), self.receive_error,
       case('KILL', an_agent)       , self.receive_shutdown,
       otherwise                    , self.receive_otherwise
     ]))
+
+  def receive_info(self, (_, agent, message)):
+    self.execution_context.info('[%s] %s' % (str(agent), str(message)))
 
   def receive_otherwise(self, message):
     self.execution_context.warning('Guard receives:', message)

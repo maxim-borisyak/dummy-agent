@@ -100,7 +100,7 @@ class ThreadBasedExecutionContext(ExecutionContext):
     self.info('Agent', agent, 'was stopped')
 
   def _direct_transfer(self, from_agent, to_agent, message):
-    self.info('Transfer message', message, 'from', from_agent, 'to', to_agent)
+    self.debug('Transfer message', message, 'from', from_agent, 'to', to_agent)
     if type(to_agent) is str or type(to_agent) is unicode:
       if self.agents_by_name.has_key(to_agent):
         _to_agent = self.agents_by_name[to_agent]

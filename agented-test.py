@@ -19,7 +19,7 @@ class PatternMatchingTestCase(unittest.TestCase):
     self.assertFalse(c1((2, 2, 'MATCH', 2)))
     self.assertFalse(c1((2, 2, 'MATH', 2)))
 
-  def test_match_function(self):
+  def test_merge_matches(self):
     even = lambda x: x % 2 == 0
 
     f = merge_matches([
@@ -55,19 +55,9 @@ class PatternMatchingTestCase(unittest.TestCase):
 
 class AgentSystemTestCase(unittest.TestCase):
   def setUp(self):
-    self.system = ThreadBasedExecutionContext(ThreadBasedExecutionContext.INFO_LEVEL)
+    self.system = ThreadBasedExecutionContext(ThreadBasedExecutionContext.DEBUG_LEVEL)
 
   def test_agent_system(self):
-    ok = case('OK')
-    answer = lambda x: case('ANSWER', constant(x))
-
-    scenario = [
-      ('/system/incrementer', ('SET', '/system/test', 1), ok),
-      ('/system/incrementer', ('INC', '/system/test', 1), answer(2)),
-      ('/system/incrementer', ('SET', '/system/test', 2), ok),
-      ('/system/incrementer', ('INC', '/system/test', 5), answer(7))
-    ]
-
     class Incrementer(RichAgent):
       __inc = 0
 
@@ -84,6 +74,16 @@ class AgentSystemTestCase(unittest.TestCase):
         self.__inc = 0
         self.become(self.receive_inc, self.receive_set)
 
+    ok = case('OK')
+    answer = lambda x: case('ANSWER', constant(x))
+
+    scenario = [
+      ('/system/incrementer', ('SET', '/system/test', 1), ok),
+      ('/system/incrementer', ('INC', '/system/test', 1), answer(2)),
+      ('/system/incrementer', ('SET', '/system/test', 2), ok),
+      ('/system/incrementer', ('INC', '/system/test', 5), answer(7))
+    ]
+
     try:
       Incrementer(execution_context=self.system, name='incrementer')
       answers = TestAgent(scenario=scenario, execution_context=self.system, name='test').get_answers()
@@ -95,7 +95,7 @@ class AgentSystemTestCase(unittest.TestCase):
 
 class ActivityTestCase(unittest.TestCase):
   def setUp(self):
-    self.system = ThreadBasedExecutionContext(ThreadBasedExecutionContext.INFO_LEVEL)
+    self.system = ThreadBasedExecutionContext(ThreadBasedExecutionContext.DEBUG_LEVEL)
 
   def test_activity(self):
     answer = lambda x: case('ANSWER', constant(x))
@@ -129,6 +129,7 @@ class ActivityTestCase(unittest.TestCase):
       ('/system/inc', ('DEF_INC', '/system/tester', 2), answer(102)),
       ('/system/inc', ('INC', '/system/tester', 0), answer(0)),
       ('/system/inc', ('INC', '/system/tester', 0), None),
+      ('/system/inc', ('DOUBLE_IT', '/system/tester', 0), None),
       ('/system/inc', ('DEF_INC', '/system/tester', 3), answer(103)),
     ]
 
