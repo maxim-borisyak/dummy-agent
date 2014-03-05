@@ -2,7 +2,7 @@
 # Module: 
 # Author: Maxim Borisyak, 2014
 
-from agent import GuardAgent
+from ..agent import GuardAgent
 
 class ExecutionContext:
 
