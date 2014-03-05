@@ -2,7 +2,7 @@ dummy-agent
 ===========
 
 Dummy Python realisation of multi-agent toolkit.
-It designed to be similar to Akka as much as it possible in simple way.
+It is designed to be similar to Akka as much as it possible in simple way.
 
 There are only two basic objects:
 
