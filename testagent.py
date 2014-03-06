@@ -21,7 +21,9 @@ class TestAgent(RichAgent):
   def __next(self):
     try:
       agent, msg, matcher = self.__iterator.next()
-      self.send(agent, msg)
+      if agent is not None:
+        self.send(agent, msg)
+
       if matcher is None:
         self.__next()
       else:
